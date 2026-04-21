@@ -1,6 +1,82 @@
 #!/usr/bin/env python3
 
 from rsa import RSA
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
+from Crypto.Random import get_random_bytes
+
+#helper classes for task 2
+
+def int_to_bytes(x):
+    if x == 0
+        return b'\x00'
+    return x.to_bytes((x.bit_length() + 7), byteorder = 'big')
+
+def derive_key_from_secret(secret_int):
+    return hashlib.sha256(int)to_bytes(secret_int)).digest()[:16]
+
+def aes_encrypt(key, plaintext):
+    iv = get_random_bytes(16)
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    ciphertext = cipher.encrypt(pad(plaintext.encode('utf-8'), AES.block_size))
+    return iv, ciphertext
+
+def aes_decrypt(key, iv, ciphertext):
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    plaintext = unpad(cipher.decrypt(ciphertext, AES.block_size)
+    return plaintext.decode('utf-8')
+
+def task3_part2(rsa):
+    print("Task 3 Part 2: RSA malleability attack\n")
+    
+    #Alice's public key
+    n, e = rsa.public_key
+    _, d = rsa.private_key
+    
+    #Bob chooses a secret s 
+    s = secrets.randbelow(n - 2) + 1
+    while number.GCD(s, n) != 1:
+        s = secrets.randbelow(n - 1) + 1
+    print(f"Bob's original secret s: {s}")
+    
+    #Bob encrypts with Alice's public key
+    c = rsa.encrypt(s)
+    print(f"Bob sends ciphertext c: {c}")
+    
+    #Mallory chooses multiplier r
+    r = 2
+    while number.GCD(r, n) != 1:
+        r += 1
+    
+    #Mallory computes c'
+    c_prime = (c * pow(r, e, n) %n
+    print(f"Mallory replaces c with c': {c_prime}")
+    
+    #Alice decrypts c'
+    s_prime = rsa.decrypt(c_prime)
+    print(f"Alice decrypts c' and gets s': {s_prime}")
+    
+    #Alice derives AES key from s' and encrypts a message
+    alicekey = derive_key_from_secret(s_prime)
+    message = "Hi Bob!"
+    iv, c0 = aes_encrypt(alice_key, message)
+
+    print(f"Alice's AES ciphertext c0: {c0.hex()}")
+    
+    #Mallory computes r^-1 and mod n
+    r_inverse = rsa.mod_inverse(r, n)
+    
+    #Recover original s from s' 
+    recovered_s = (s_prime * r_inverse) %n
+    print(f"Mallory recovers original s: {recovered_s}")
+    
+    #Mallory computes same s' Alice used
+    recovered_s_prime = (recovered_s * r) %n
+    
+    #Derive same AES key and decrypt message
+    mallory_key = derive_key_from_secret(recovered_s_prime)
+    recovered_message = aes_decrypt(mallory_key, iv, c0)
+    print(f"Mallory decrypts c0 and recovers message: '{recovered_message}'\n")
 
 def demo_rsa(rsa):    
     # string message
@@ -20,8 +96,6 @@ def demo_rsa(rsa):
     decrypted_str = rsa.decrypt_string(ciphertext_str)
     print(f"Decrypted message: '{decrypted_str}'")
     print()
-    
-
 
 def task_three():
     rsa = RSA(2048)
@@ -32,6 +106,7 @@ def task_three():
 
     # encrypt and decrypt
     demo_rsa(rsa)
+    task3_part2(rsa)
         
 
 if __name__ == "__main__":
